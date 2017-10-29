@@ -6,9 +6,30 @@ output: html_document
 ---
 
 
+First lets read in the dataset and observe the structure.
 ```{r}
 
-tele <- read.csv("telemarketing.csv")
+#the data is split by semi colon, not a comma.
+tele <- read.csv("telemarketing.csv", sep = ";")
 str(tele)
 ```
 
+Also, lets observe the current proportion of our target value: has the client subscribed a term deposit?
+
+```{r}
+round(prop.table(table(tele$y)) * 100, 1)
+```
+We see that there is a base of 88.7 % people saying no. Therefore, our model should be atleast this accurate in order to be useful.
+
+
+Lets find out which variables have missing data and see if we can account for that.
+```{r}
+colSums(is.na(tele))
+```
+We find there are no missing data.
+
+Lets explore the general statistics of the data.
+```{r}
+summary(tele)
+```
+For the column pdays: number of days that passed by after the client was last contacted from a previous campaign, we know that  (numeric; 999 means client was not previously contacted). In order to use this in our model, we should account for this.
