@@ -1,0 +1,14 @@
+---
+title: "Homework 5"
+author: "Jake Close"
+date: "10/26/2017"
+output: html_document
+---
+
+
+```{r}
+
+tele <- read.csv("telemarketing.csv")
+str(tele)
+```
+
