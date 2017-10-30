@@ -1,6 +1,6 @@
 ---
 title: "Homework 5"
-author: "Jake Close"
+author: "Jake Close & Peter Kaplan"
 date: "10/26/2017"
 output: html_document
 ---
@@ -33,3 +33,14 @@ Lets explore the general statistics of the data.
 summary(tele)
 ```
 For the column pdays: number of days that passed by after the client was last contacted from a previous campaign, we know that  (numeric; 999 means client was not previously contacted). In order to use this in our model, we should account for this.
+
+Next we will remove the duration column. This is because when we are predicting if a phone call will succeed or not we don't know the duration. Before we remove it, lets check to see how duration varies between yes' and nos. 
+```{r}
+
+boxplot(duration~y,data=tele, main="Duration of Calls vs. Success", 
+  	xlab="Successful Sale", ylab="Duration of Call (seconds)", outline=FALSE)
+
+tele <- tele[-11]
+
+```
+As we can see, when a person stays on the phone longer it is more likely to be successful. This makes sense as talking for longer usually indicates interest.
