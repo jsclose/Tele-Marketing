@@ -9,6 +9,8 @@ output: html_document
 First lets read in the dataset and observe the structure.
 ```{r}
 library(dummies)
+library(class)
+library(gmodels)
 #the data is split by semi colon, not a comma.
 tele <- read.csv("telemarketing.csv", sep = ";")
 str(tele)
@@ -36,11 +38,6 @@ For the column pdays: number of days that passed by after the client was last co
 
 
 
-Convert Factor Variable to dummy variables
-```{r}
-df1 <- cbind(tele, dummy(tele$contact, sep = "_"))
-```
-
 
 Next we will remove the duration column. This is because when we are predicting if a phone call will succeed or not we don't know the duration. Before we remove it, lets check to see how duration varies between yes' and nos. 
 ```{r}
@@ -53,3 +50,45 @@ tele <- tele[-11]
 ```
 As we can see, when a person stays on the phone longer it is more likely to be successful. This makes sense as talking for longer usually indicates interest.
 
+Lets prepare the datset for KNN.
+
+Lets convert the output variable to a numeric.
+```{r}
+tele$y <- as.numeric(tele$y)
+levels(tele$housing) <- c("housing_no","housing_unknown","housing_yes")
+levels(tele$loan) <- c("loan_no","loan_unknown","loan_yes")
+levels(tele$default) <- c("default_no","default_unknown","default_yes")
+
+```
+
+
+Convert Factor Variable to dummy variables
+```{r}
+for (col in names(tele)){
+  if(class(tele[[col]]) == "factor"){
+      tele <- cbind(tele, dummy(tele[[col]], sep = "_"))
+  }
+}
+
+#df1 <- cbind(tele, dummy(tele$contact, sep = "_"))
+str(tele)
+```
+
+
+Lets split the data into training and testing datasets. Lets do a 25/75 split
+
+Choose k  = sqrt(dataset size ) = 203
+```{r}
+tele_train <- tele[10297:41188, ]
+tele_test <- tele[1:10297, ]
+
+tele_train_labels <- tele[10297:41188, 20 ]
+tele_test_labels <- tele[1:10297, 20 ]
+
+tele_test_pred <- knn(train = tele_train, test = tele_test,
+                      cl = tele_train_labels, k=203)
+```
+
+Analysis:
+
+Want to minimize false negatives. Our prediction defaults to "not going to buy", therefore we do not want any opportunity lost.
