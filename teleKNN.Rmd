@@ -34,7 +34,7 @@ Lets explore the general statistics of the data.
 ```{r}
 summary(tele)
 ```
-For the column pdays: number of days that passed by after the client was last contacted from a previous campaign, we know that  (numeric; 999 means client was not previously contacted). In order to use this in our model, we should account for this.
+For the column pdays: number of days that passed by after the client was last contacted from a previous campaign, we know that  (numeric; 999 means client was not previously contacted). In order to use this in our model, we should account for this. For now, we will remove.
 
 
 
@@ -53,7 +53,10 @@ As we can see, when a person stays on the phone longer it is more likely to be s
 Lets prepare the datset for KNN.
 
 Lets convert the output variable to a numeric.
+
+Need to clean factor values to only have unique levels for later creation of dummy variables.
 ```{r}
+#convert output to numeric
 tele$y <- as.numeric(tele$y)
 levels(tele$housing) <- c("housing_no","housing_unknown","housing_yes")
 levels(tele$loan) <- c("loan_no","loan_unknown","loan_yes")
@@ -66,19 +69,23 @@ levels(tele$job)
 ```
 
 
-Convert Factor Variable to dummy variables
+Convert Factor Variable to dummy variables.
+We create a for loop that goes through each factor and converts them to dummy variables.
+We also keep track of these variables and then drop them after.
 ```{r}
-drops <- c("duration")
+
+
+drops <- c("duration", "pdays")
 for (col in names(tele)){
   if(class(tele[[col]]) == "factor" && col != "y"){
       tele <- cbind(tele, dummy(tele[[col]], sep = "_"))
       drops <- c(drops, col)
   }
 }
-drops
+
 tele <- tele[ , !(names(tele) %in% drops)]
 #df1 <- cbind(tele, dummy(tele$contact, sep = "_"))
-str(tele)
+#str(tele)
 ```
 
 
@@ -86,18 +93,35 @@ Lets split the data into training and testing datasets. Lets do a 25/75 split
 
 Choose k  = sqrt(dataset size ) = 203
 ```{r}
-tele_train <- tele[10297:41188, ]
-tele_test <- tele[1:10297, ]
 
+#drop y from our training data
+tele_n <- tele[ , !(names(tele) %in% c("y"))]
+
+#scale using z score
+tele_n <- as.data.frame(scale(tele_n))
+
+
+#create training data and testing data subset
+tele_train <- tele_n[10297:41188, ]
+tele_test <- tele_n[1:10297, ]
+
+#create labels
 tele_train_labels <- tele[10297:41188, 20 ]
 tele_test_labels <- tele[1:10297, 20 ]
 
-tele_n <- as.data.frame(lapply(tele[2:31], normalize))
 
+
+#create prediction, with k ~ sqrt(41k) = 203
 tele_test_pred <- knn(train = tele_train, test = tele_test,
                       cl = tele_train_labels, k=203)
+#cross
+CrossTable(x = tele_test_labels, y = tele_test_pred, 
+           prop.chisq=FALSE)
 ```
 
 Analysis:
 
 Want to minimize false negatives. Our prediction defaults to "not going to buy", therefore we do not want any opportunity lost.
+
+We find in our Cross table that we have minimized the amount of false positives. 
+We find that that our accuracy is 99.89%.
