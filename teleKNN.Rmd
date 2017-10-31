@@ -45,7 +45,7 @@ Next we will remove the duration column. This is because when we are predicting 
 boxplot(duration~y,data=tele, main="Duration of Calls vs. Success", 
   	xlab="Successful Sale", ylab="Duration of Call (seconds)", outline=FALSE)
 
-tele <- tele[-11]
+#tele <- tele[-11]
 
 ```
 As we can see, when a person stays on the phone longer it is more likely to be successful. This makes sense as talking for longer usually indicates interest.
@@ -64,12 +64,15 @@ levels(tele$default) <- c("default_no","default_unknown","default_yes")
 
 Convert Factor Variable to dummy variables
 ```{r}
+drops <- c("duration")
 for (col in names(tele)){
-  if(class(tele[[col]]) == "factor"){
+  if(class(tele[[col]]) == "factor" && col != "y"){
       tele <- cbind(tele, dummy(tele[[col]], sep = "_"))
+      drops <- c(drops, col)
   }
 }
-
+drops
+tele <- tele[ , !(names(tele) %in% drops)]
 #df1 <- cbind(tele, dummy(tele$contact, sep = "_"))
 str(tele)
 ```
@@ -84,6 +87,8 @@ tele_test <- tele[1:10297, ]
 
 tele_train_labels <- tele[10297:41188, 20 ]
 tele_test_labels <- tele[1:10297, 20 ]
+
+tele_n <- as.data.frame(lapply(tele[2:31], normalize))
 
 tele_test_pred <- knn(train = tele_train, test = tele_test,
                       cl = tele_train_labels, k=203)
