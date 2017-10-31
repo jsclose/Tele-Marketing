@@ -59,6 +59,10 @@ levels(tele$housing) <- c("housing_no","housing_unknown","housing_yes")
 levels(tele$loan) <- c("loan_no","loan_unknown","loan_yes")
 levels(tele$default) <- c("default_no","default_unknown","default_yes")
 
+
+levels(tele$job)[match("unknown", levels(tele$job))] <- "job_unknown"
+levels(tele$job)
+
 ```
 
 
